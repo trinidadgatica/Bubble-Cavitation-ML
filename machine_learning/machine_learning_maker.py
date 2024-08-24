@@ -1,11 +1,7 @@
 from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
-from sklearn.linear_model import LinearRegression, LogisticRegression
-from sklearn.metrics import mean_absolute_error, accuracy_score
-from sklearn.model_selection import train_test_split, KFold
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_absolute_error
 
-from scipy.stats import norm
-from sklearn import tree
 import pandas as pd
 import numpy as np
 import itertools
@@ -83,7 +79,7 @@ class ExperimentMaker():
 
                 # Append the new row series to the DataFrame
                 new_test_set = pd.concat([new_test_set, new_row_series.to_frame().T], ignore_index=True)
-                new_test_set.to_csv(f'data/proportion_plot_general.csv')
+                new_test_set.to_csv(f'../Data/proportion_plot_general.csv')
         else:
             for value in ranges[variable_to_vary]:
                 # Create a new row with fixed values
@@ -94,7 +90,7 @@ class ExperimentMaker():
 
                 # Append the new row series to the DataFrame
                 new_test_set = pd.concat([new_test_set, new_row_series.to_frame().T], ignore_index=True)
-                new_test_set.to_csv(f'data/proportion_plot_{variable_to_vary}.csv')
+                new_test_set.to_csv(f'../Data/proportion_plot_{variable_to_vary}.csv')
         return new_test_set
 
     def ensemble_model(self, dataset, n_trees, generalization=False, predict_new=False, variable_to_vary=None, two_variables=False):
@@ -135,9 +131,8 @@ class ExperimentMaker():
 
             if predict_new and variable_to_vary is not None:
                 # Create a new test set based on the specified variable
-                if os.path.exists('data/proportion_plot_general.csv'):
-                    print('inside if')
-                    new_test_set = pd.read_csv('data/proportion_plot_general.csv')
+                if os.path.exists('../Data/proportion_plot_general.csv'):
+                    new_test_set = pd.read_csv('../Data/proportion_plot_general.csv')
                 else:
                     new_test_set = self.create_new_test_set(variable_to_vary, two_variables)
                 features_test = new_test_set[['initial_radius', 'acoustic_pressure', 'frequency', 'temperature',
@@ -357,9 +352,8 @@ class ExperimentMaker():
 
         if predict_new and variable_to_vary is not None:
             # Create a new test set based on the specified variable
-            if os.path.exists('data/proportion_plot_general.csv'):
-                print('inside if')
-                new_test_set = pd.read_csv('data/proportion_plot_general.csv')
+            if os.path.exists('../Data/proportion_plot_general.csv'):
+                new_test_set = pd.read_csv('../Data/proportion_plot_general.csv')
             else:
                 new_test_set = self.create_new_test_set(variable_to_vary, two_variables)
             features_test = new_test_set[['initial_radius', 'acoustic_pressure', 'frequency', 'temperature',

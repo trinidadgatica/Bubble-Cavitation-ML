@@ -32,9 +32,7 @@ def calculate_overall_metrics(labels, predictions, binary_classification=True):
         accuracy_list.append(accuracy_i)
         mae_list.append(mae_i)
         rmse_list.append(rmse_i)
-    print('Accuracy', np.mean(accuracy_list))
-    print('MAE', np.mean(mae_list))
-    print('RMSE', np.mean(rmse_list))
+    return np.mean(accuracy_list), np.mean(mae_list), np.mean(rmse_list)
 
 
 def comparison_table(result_df, design):
@@ -117,49 +115,49 @@ def comparison_table(result_df, design):
         raise ValueError('Wrong design')
 
 
-def process_ensemble_multi_objective(results, model_type, binary_classification=True):
+def process_ensemble_multi_objective(results, model_type):
 
     all_labels_train = []
     all_predictions_train = []
     all_labels_test = []
     all_predictions_test = []
+    if model_type == 'Multi-objective':
+        for result in results:
+            labels_train = result['Labels_train'].values
+            predictions_train = result['Train_predictions']
 
-    for result in results:
-        labels_train = result['Labels_train'].values
-        predictions_train = result['Train_predictions']
+            labels_test = result['Labels_test'].values
+            predictions_test = result['Test_predictions']
 
-        labels_test = result['Labels_test'].values
-        predictions_test = result['Test_predictions']
+            all_labels_train.append(labels_train)
+            all_predictions_train.append(predictions_train)
 
-        all_labels_train.append(labels_train)
-        all_predictions_train.append(predictions_train)
+            all_labels_test.append(labels_test)
+            all_predictions_test.append(predictions_test)
 
-        all_labels_test.append(labels_test)
-        all_predictions_test.append(predictions_test)
+        
+        # Cálculo usando el método 'mean'
+        mean_prediction_train, mean_labels_train, voting_predictions_train, voting_labels_train = ensembling_models(
+            all_labels_train, all_predictions_train, model_type)
+        mean_prediction_test, mean_labels_test, voting_predictions_test, voting_labels_test = ensembling_models(
+            all_labels_test, all_predictions_test, model_type)
 
-    # Convertir listas anidadas a arrays para procesamiento
-    all_labels_train = np.vstack(all_labels_train)
-    all_predictions_train = np.vstack(all_predictions_train)
-    all_labels_test = np.vstack(all_labels_test)
-    all_predictions_test = np.vstack(all_predictions_test)
+        # Calcular métricas para train
+        print(f'{model_type} - Train Metrics (Mean)')
+        calculate_overall_metrics(mean_labels_train, mean_prediction_train, False)
+        print(f'{model_type} - Train Metrics (Voting)')
+        calculate_overall_metrics(voting_labels_train, voting_predictions_train, True)
 
-    # Cálculo usando el método 'mean'
-    mean_prediction_train, mean_labels_train, voting_predictions_train, voting_labels_train = ensembling_models(
-        all_labels_train, all_predictions_train, model_type)
-    mean_prediction_test, mean_labels_test, voting_predictions_test, voting_labels_test = ensembling_models(
-        all_labels_test, all_predictions_test, model_type)
+        # Calcular métricas para test
+        print(f'{model_type} - Test Metrics (Mean)')
+        calculate_overall_metrics(mean_labels_test, mean_prediction_test, False)
+        print(f'{model_type} - Test Metrics (Voting)')
+        calculate_overall_metrics(voting_labels_test, voting_predictions_test, True)
 
-    # Calcular métricas para train
-    print(f'{model_type} - Train Metrics (Mean)')
-    calculate_overall_metrics(mean_labels_train.flatten(), mean_prediction_train.flatten(), binary_classification)
-    print(f'{model_type} - Train Metrics (Voting)')
-    calculate_overall_metrics(voting_labels_train.flatten(), voting_predictions_train.flatten(), binary_classification)
-
-    # Calcular métricas para test
-    print(f'{model_type} - Test Metrics (Mean)')
-    calculate_overall_metrics(mean_labels_test.flatten(), mean_prediction_test.flatten(), binary_classification)
-    print(f'{model_type} - Test Metrics (Voting)')
-    calculate_overall_metrics(voting_labels_test.flatten(), voting_predictions_test.flatten(), binary_classification)
+    elif model_type == 'Ensemble':
+            pass
+    else:
+        raise ValueError('Wrong model type')
 
 
 def ensembling_models(labels, predictions, model):

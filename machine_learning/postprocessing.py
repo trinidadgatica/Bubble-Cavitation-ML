@@ -1,14 +1,8 @@
+import matplotlib.pyplot as plt
+import seaborn as sns
 import pandas as pd
 import numpy as np
 import ast
-import seaborn as sns
-import matplotlib.pyplot as plt
-from sklearn.metrics import confusion_matrix
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-from sklearn.metrics import accuracy_score
-from sklearn.metrics import mean_absolute_error, mean_squared_error
-import re
 
 
 def critical_maximum_radius(data):
@@ -94,7 +88,7 @@ def define_threshold(kurtosis_threshold, crest_factor_threshold, type_of_data):
                 x[0] > kurtosis_threshold and x[1] > crest_factor_threshold))
     original_dataset['G_kurtosis_crest_factor'] = np.where(condition_g, False, True)
 
-    # drop the columns with the values and conserve with the thresholds
+    # drop the columns with the values and conserve with the classifiers
     original_dataset.drop(['RP_expansion_radius', 'KM_expansion_radius', 'G_expansion_radius',
                            'RP_acoustic_emissions', 'KM_acoustic_emissions', 'G_acoustic_emissions'], axis=1,
                           inplace=True)
@@ -354,7 +348,7 @@ def distribution_data(data):
     plt.figure(figsize=(10, 6))
     sns.histplot(data=grouped_equation, x='value', hue='equation', multiple='dodge', discrete=True, shrink=0.8)
     plt.xticks([0, 1, 2, 3, 4])
-    plt.xlabel('Number of thresholds classifying cavitation as stable', fontsize=16)
+    plt.xlabel('Number of classifiers classifying cavitation as stable', fontsize=16)
     plt.ylabel('Count', fontsize=16)
     plt.xticks(fontsize=12)
     plt.yticks(fontsize=12)

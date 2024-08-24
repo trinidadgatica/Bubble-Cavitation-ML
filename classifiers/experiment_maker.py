@@ -1,11 +1,12 @@
 from main import Model
-from thresholds.ode_runner import Solver
+from classifiers.ode_runner import Solver
 
 
 from scipy.integrate import odeint, quad
 from scipy.signal import find_peaks
 from scipy.optimize import root
 import numpy as np
+import warnings
 
 
 class ExperimentMaker(Model):
@@ -300,7 +301,7 @@ class ExperimentMaker(Model):
 
     def recursive_integration(self, integrand, t1, t2, tolerance, max_points=50, max_iterations=5, iteration=0):
         if iteration >= max_iterations:
-            print("Max iterations reached. Returning current result.")
+            warnings.warn("Max iterations reached. Returning current result.", UserWarning)
             return quad(integrand, t1, t2, epsrel=tolerance)
 
         points = np.linspace(t1, t2, num=max_points)
@@ -369,11 +370,11 @@ class ExperimentMaker(Model):
                             ratio = ratio_interval
                             peak_interval = interval[position_max]
                     else:
-                        print("division by zero")
+                        warnings.warn("division by zero", UserWarning)
                 else:
-                    print("No valley found after the peak at position", position_max)
+                    warnings.warn("No valley found after the peak at position", UserWarning)
         else:
-            print("No peaks in the interval")
+            warnings.warn("No peaks in the interval", UserWarning)
         return ratio, peak_interval
 
     def transition_radius(self, radius, velocity, equation_name, time):

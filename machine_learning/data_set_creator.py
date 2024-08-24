@@ -1,4 +1,4 @@
-from thresholds.experiment_maker import ExperimentMaker
+from classifiers.experiment_maker import ExperimentMaker
 from main import Model
 
 from joblib import Parallel, delayed
