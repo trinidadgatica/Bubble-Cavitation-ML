@@ -35,131 +35,6 @@ def calculate_overall_metrics(labels, predictions, binary_classification=True):
     return np.mean(accuracy_list), np.mean(mae_list), np.mean(rmse_list)
 
 
-def comparison_table(result_df, design):
-    if design == 'MO':
-        accuracy_list_mean = []
-        mae_list_mean = []
-        rmse_list_mean = []
-
-        accuracy_list_voting = []
-        mae_list_voting = []
-        rmse_list_voting = []
-        for i in range(5):
-            labels = result_df[i]['Labels_test'].values.tolist()
-            predictions = result_df[i]['Test_predictions']
-
-            mean_prediction, mean_labels, voting_predictions, voting_labels = ensembling_models(labels, predictions,
-                                                                                                'Multi-objective')
-
-            # MEAN
-            accuracy_m, mae_m, rmse_m = calculate_metrics(mean_labels, mean_prediction, False)
-            accuracy_list_mean.append(accuracy_m)
-            mae_list_mean.append(mae_m)
-            rmse_list_mean.append(rmse_m)
-            # VOTING
-            accuracy_v, mae_v, rmse_v = calculate_metrics(voting_labels, voting_predictions, True)
-            accuracy_list_voting.append(accuracy_v)
-            mae_list_voting.append(mae_v)
-            rmse_list_voting.append(rmse_v)
-        print(accuracy_list_mean, mae_list_mean, rmse_list_mean)
-        print('___________________________________________________')
-        print(accuracy_list_voting, mae_list_voting, rmse_list_voting)
-        print('-------------------------------------------------')
-        print('Multi-objective', 'Mean')
-        print('Accuracy', np.mean(accuracy_list_mean))
-        print('MAE', np.mean(mae_list_mean))
-        print('RMSE', np.mean(rmse_list_mean))
-        print('Multi-objective', 'Voting')
-        print('Accuracy', np.mean(accuracy_list_voting))
-        print('MAE', np.mean(mae_list_voting))
-        print('RMSE', np.mean(rmse_list_voting))
-
-    elif design == 'Ensemble':
-        accuracy_list_mean = []
-        mae_list_mean = []
-        rmse_list_mean = []
-
-        accuracy_list_voting = []
-        mae_list_voting = []
-        rmse_list_voting = []
-        for i in range(5):
-            j = i + 1
-            df = result_df[(result_df['Fold'] == j) & (result_df['Set'] == 'Test')]
-            mean_prediction, mean_labels, voting_predictions, voting_labels = ensembling_models(
-                np.array(df['Label'].tolist()), np.array(df['Predicted'].tolist()), 'Ensemble')
-            # MEAN
-            accuracy_m, mae_m, rmse_m = calculate_metrics(mean_labels, mean_prediction, False)
-            accuracy_list_mean.append(accuracy_m)
-            mae_list_mean.append(mae_m)
-            rmse_list_mean.append(rmse_m)
-            # VOTING
-            accuracy_v, mae_v, rmse_v = calculate_metrics(voting_labels, voting_predictions, True)
-            accuracy_list_voting.append(accuracy_v)
-            mae_list_voting.append(mae_v)
-            rmse_list_voting.append(rmse_v)
-
-        print(accuracy_list_mean, mae_list_mean, rmse_list_mean)
-        print('___________________________________________________')
-        print(accuracy_list_voting, mae_list_voting, rmse_list_voting)
-        print('-------------------------------------------------')
-        print('Ensemble', 'Mean')
-        print('Accuracy', np.mean(accuracy_list_mean))
-        print('MAE', np.mean(mae_list_mean))
-        print('RMSE', np.mean(rmse_list_mean))
-        print('Ensemble', 'Voting')
-        print('Accuracy', np.mean(accuracy_list_voting))
-        print('MAE', np.mean(mae_list_voting))
-        print('RMSE', np.mean(rmse_list_voting))
-
-    else:
-        raise ValueError('Wrong design')
-
-
-def process_ensemble_multi_objective(results, model_type):
-
-    all_labels_train = []
-    all_predictions_train = []
-    all_labels_test = []
-    all_predictions_test = []
-    if model_type == 'Multi-objective':
-        for result in results:
-            labels_train = result['Labels_train'].values
-            predictions_train = result['Train_predictions']
-
-            labels_test = result['Labels_test'].values
-            predictions_test = result['Test_predictions']
-
-            all_labels_train.append(labels_train)
-            all_predictions_train.append(predictions_train)
-
-            all_labels_test.append(labels_test)
-            all_predictions_test.append(predictions_test)
-
-        
-        # Cálculo usando el método 'mean'
-        mean_prediction_train, mean_labels_train, voting_predictions_train, voting_labels_train = ensembling_models(
-            all_labels_train, all_predictions_train, model_type)
-        mean_prediction_test, mean_labels_test, voting_predictions_test, voting_labels_test = ensembling_models(
-            all_labels_test, all_predictions_test, model_type)
-
-        # Calcular métricas para train
-        print(f'{model_type} - Train Metrics (Mean)')
-        calculate_overall_metrics(mean_labels_train, mean_prediction_train, False)
-        print(f'{model_type} - Train Metrics (Voting)')
-        calculate_overall_metrics(voting_labels_train, voting_predictions_train, True)
-
-        # Calcular métricas para test
-        print(f'{model_type} - Test Metrics (Mean)')
-        calculate_overall_metrics(mean_labels_test, mean_prediction_test, False)
-        print(f'{model_type} - Test Metrics (Voting)')
-        calculate_overall_metrics(voting_labels_test, voting_predictions_test, True)
-
-    elif model_type == 'Ensemble':
-            pass
-    else:
-        raise ValueError('Wrong model type')
-
-
 def ensembling_models(labels, predictions, model):
     if model == 'Ensemble':
         mean_prediction_raw = np.mean(predictions, axis=0).tolist()
@@ -223,15 +98,15 @@ def table_metrics(result_ensemble, result_expansion, result_likelihood, results_
 
     # Calculate metrics for expansion and likelihood models
     acc_expansion_test, mae_expansion_test, rmse_expansion_test = calculate_metrics(
-        np.array(test_expansion['Label'].tolist()), np.array(test_expansion['Predicted'].tolist()), True)
+        np.array(test_expansion['Label'].values[0]), test_expansion['Predicted'].values[0], True)
     acc_likelihood_test, mae_likelihood_test, rmse_likelihood_test = calculate_metrics(
-        np.array(test_probabilistic['Label'].tolist()), np.array(test_probabilistic['Predicted'].tolist()), False)
+        np.array(test_probabilistic['Label'].values[0]), np.array(test_probabilistic['Predicted'].values[0]), False)
 
     # Create a list of models and their corresponding metrics
     table_data_test = [
-        ['Ensemble Mean', acc_ensemble_mean_test, mae_ensemble_mean_test, rmse_ensemble_mean_test],
+        ['Ensemble Mean', acc_ensemble_vote_test, mae_ensemble_mean_test, rmse_ensemble_mean_test],
         ['Ensemble Voting', acc_ensemble_vote_test, mae_ensemble_vote_test, rmse_ensemble_vote_test],
-        ['Multi-objective Mean', acc_mo_mean_test, mae_mo_mean_test, rmse_mo_mean_test],
+        ['Multi-objective Mean', acc_mo_vote_test, mae_mo_mean_test, rmse_mo_mean_test],
         ['Multi-objective Voting', acc_mo_vote_test, mae_mo_vote_test, rmse_mo_vote_test],
         ['Expansion', acc_expansion_test, mae_expansion_test, rmse_expansion_test],
         ['Likelihood', acc_likelihood_test, mae_likelihood_test, rmse_likelihood_test]
@@ -271,16 +146,242 @@ def table_metrics(result_ensemble, result_expansion, result_likelihood, results_
 
     # Calculate metrics for expansion and likelihood models (train set)
     acc_expansion_train, mae_expansion_train, rmse_expansion_train = calculate_metrics(
-        np.array(train_expansion['Label'].tolist()), np.array(train_expansion['Predicted'].tolist()), True)
+        np.array(train_expansion['Label'].values[0]), train_expansion['Predicted'].values[0], True)
     acc_likelihood_train, mae_likelihood_train, rmse_likelihood_train = calculate_metrics(
-        np.array(train_probabilistic['Label'].tolist()), np.array(train_probabilistic['Predicted'].tolist()), False)
+        np.array(train_probabilistic['Label'].values[0]), np.array(train_probabilistic['Predicted'].values[0]), False)
 
     # Create a list of models and their corresponding metrics for the train set
     table_data_train = [
-        ['Ensemble Mean', acc_ensemble_mean_train, mae_ensemble_mean_train, rmse_ensemble_mean_train],
+        ['Ensemble Mean', acc_ensemble_vote_train, mae_ensemble_mean_train, rmse_ensemble_mean_train],
         ['Ensemble Voting', acc_ensemble_vote_train, mae_ensemble_vote_train, rmse_ensemble_vote_train],
-        ['Multi-objective Mean', acc_mo_mean_train, mae_mo_mean_train, rmse_mo_mean_train],
+        ['Multi-objective Mean', acc_mo_vote_train, mae_mo_mean_train, rmse_mo_mean_train],
         ['Multi-objective Voting', acc_mo_vote_train, mae_mo_vote_train, rmse_mo_vote_train],
+        ['Expansion', acc_expansion_train, mae_expansion_train, rmse_expansion_train],
+        ['Likelihood', acc_likelihood_train, mae_likelihood_train, rmse_likelihood_train]
+    ]
+
+    # Generate and print the table for the train set
+    table_train = tabulate(table_data_train, headers=headers, tablefmt='pretty')
+    print("Train Set Metrics:")
+    print(table_train)
+
+
+def ensembling(ensemble_type, raw_list):
+    if ensemble_type == 'Voting':
+        final_list = [1 if vote >= 6 else 0 for vote in raw_list]
+    else:
+        raise
+    return final_list
+
+
+def calculate_metrics_MO_cross_validation(result_mo_dd):
+    accuracy_list_train_mean = []
+    mae_list_train_mean = []
+    rmse_list_train_mean = []
+
+    accuracy_list_test_mean = []
+    mae_list_test_mean = []
+    rmse_list_test_mean = []
+
+    accuracy_list_train_sum = []
+    mae_list_train_sum = []
+    rmse_list_train_sum = []
+
+    accuracy_list_test_sum = []
+    mae_list_test_sum = []
+    rmse_list_test_sum = []
+
+    for number_fold in range(5):
+        label_train_raw = result_mo_dd[number_fold]['Labels_train']
+        label_test_raw = result_mo_dd[number_fold]['Labels_test']
+
+        prediction_train_raw = result_mo_dd[number_fold]['Train_predictions']
+        prediction_test_raw = result_mo_dd[number_fold]['Test_predictions']
+
+        # MEAN
+        label_train_mean = np.mean(label_train_raw.values.tolist(), axis=1)
+        label_test_mean = np.mean(label_test_raw.values.tolist(), axis=1)
+
+        prediction_train_mean = np.mean(prediction_train_raw, axis=1)
+        prediction_test_mean = np.mean(prediction_test_raw, axis=1)
+
+        # SUM
+        label_train_sum = ensembling('Voting', np.sum(label_train_raw.values.tolist(), axis=1))
+        label_test_sum = ensembling('Voting', np.sum(label_test_raw.values.tolist(), axis=1))
+
+        prediction_train_sum = ensembling('Voting', np.sum(prediction_train_raw, axis=1))
+        prediction_test_sum = ensembling('Voting', np.sum(prediction_test_raw, axis=1))
+
+        # Calculate metrics
+        metrics_mean_train = calculate_metrics(label_train_mean, prediction_train_mean, False)
+        metrics_mean_test = calculate_metrics(label_test_mean, prediction_test_mean, False)
+
+        metrics_sum_train = calculate_metrics(label_train_sum, prediction_train_sum, True)
+        metrics_sum_test = calculate_metrics(label_test_sum, prediction_test_sum, True)
+
+        # Append metrics for mean
+        accuracy_list_train_mean.append(metrics_mean_train[0])
+        mae_list_train_mean.append(metrics_mean_train[1])
+        rmse_list_train_mean.append(metrics_mean_train[2])
+
+        accuracy_list_test_mean.append(metrics_mean_test[0])
+        mae_list_test_mean.append(metrics_mean_test[1])
+        rmse_list_test_mean.append(metrics_mean_test[2])
+
+        # Append metrics for sum
+        accuracy_list_train_sum.append(metrics_sum_train[0])
+        mae_list_train_sum.append(metrics_sum_train[1])
+        rmse_list_train_sum.append(metrics_sum_train[2])
+
+        accuracy_list_test_sum.append(metrics_sum_test[0])
+        mae_list_test_sum.append(metrics_sum_test[1])
+        rmse_list_test_sum.append(metrics_sum_test[2])
+
+    # Calculate mean values for all lists and return them
+    return (
+        np.mean(accuracy_list_train_mean), np.mean(mae_list_train_mean), np.mean(rmse_list_train_mean),
+        np.mean(accuracy_list_test_mean), np.mean(mae_list_test_mean), np.mean(rmse_list_test_mean),
+        np.mean(accuracy_list_train_sum), np.mean(mae_list_train_sum), np.mean(rmse_list_train_sum),
+        np.mean(accuracy_list_test_sum), np.mean(mae_list_test_sum), np.mean(rmse_list_test_sum)
+    )
+
+
+def calculate_metrics_ensemble_cross_validation(result_ensemble):
+    accuracy_list_train_mean = []
+    mae_list_train_mean = []
+    rmse_list_train_mean = []
+
+    accuracy_list_test_mean = []
+    mae_list_test_mean = []
+    rmse_list_test_mean = []
+
+    accuracy_list_train_sum = []
+    mae_list_train_sum = []
+    rmse_list_train_sum = []
+
+    accuracy_list_test_sum = []
+    mae_list_test_sum = []
+    rmse_list_test_sum = []
+
+    for fold_number in range(1,6):
+        filter_train = (result_ensemble['Fold'] == fold_number) & (result_ensemble['Set'] == 'Train')
+        filter_test = (result_ensemble['Fold'] == fold_number) & (result_ensemble['Set'] == 'Test')
+        ensemble_train = result_ensemble[filter_train]
+        ensemble_test = result_ensemble[filter_test]
+
+        label_train_mean = np.mean(list(ensemble_train['Label']), axis=0)
+        label_train_sum = ensembling('Voting', np.sum(list(ensemble_train['Label']), axis=0))
+
+        label_test_mean = np.mean(list(ensemble_test['Label']), axis=0)
+        label_test_sum = ensembling('Voting', np.sum(list(ensemble_test['Label']), axis=0))
+
+
+        prediction_train_mean = np.mean(list(ensemble_train['Predicted']), axis=0)
+        prediction_train_sum = ensembling('Voting', np.sum(list(ensemble_train['Predicted']), axis=0))
+
+        prediction_test_mean = np.mean(list(ensemble_test['Predicted']), axis=0)
+        prediction_test_sum = ensembling('Voting', np.sum(list(ensemble_test['Predicted']), axis=0))
+
+        metrics_mean_train = calculate_metrics(label_train_mean, prediction_train_mean, False)
+        metrics_mean_test = calculate_metrics(label_test_mean, prediction_test_mean, False)
+
+        metrics_sum_train = calculate_metrics(label_train_sum, prediction_train_sum, True)
+        metrics_sum_test = calculate_metrics(label_test_sum, prediction_test_sum, True)
+
+         # Append metrics for mean
+        accuracy_list_train_mean.append(metrics_mean_train[0])
+        mae_list_train_mean.append(metrics_mean_train[1])
+        rmse_list_train_mean.append(metrics_mean_train[2])
+
+        accuracy_list_test_mean.append(metrics_mean_test[0])
+        mae_list_test_mean.append(metrics_mean_test[1])
+        rmse_list_test_mean.append(metrics_mean_test[2])
+
+        # Append metrics for sum
+        accuracy_list_train_sum.append(metrics_sum_train[0])
+        mae_list_train_sum.append(metrics_sum_train[1])
+        rmse_list_train_sum.append(metrics_sum_train[2])
+
+        accuracy_list_test_sum.append(metrics_sum_test[0])
+        mae_list_test_sum.append(metrics_sum_test[1])
+        rmse_list_test_sum.append(metrics_sum_test[2])
+
+        # Calculate mean values for all lists and return them
+    return (
+        np.mean(accuracy_list_train_mean), np.mean(mae_list_train_mean), np.mean(rmse_list_train_mean),
+        np.mean(accuracy_list_test_mean), np.mean(mae_list_test_mean), np.mean(rmse_list_test_mean),
+        np.mean(accuracy_list_train_sum), np.mean(mae_list_train_sum), np.mean(rmse_list_train_sum),
+        np.mean(accuracy_list_test_sum), np.mean(mae_list_test_sum), np.mean(rmse_list_test_sum)
+    )
+
+
+def table_metrics_cross_validation(result_ensemble, result_mo, result_expansion, result_likelihood):
+    # Separate train and test sets for the expansion and likelihood models
+    result_expansion_train = result_expansion[result_expansion['Set'] == 'Train']
+    result_expansion_test = result_expansion[result_expansion['Set'] == 'Test']
+
+    result_likelihood_train = result_likelihood[result_likelihood['Set'] == 'Train']
+    result_likelihood_test = result_likelihood[result_likelihood['Set'] == 'Test']
+
+    result_mo_dd, list_labels_mo = result_mo
+
+    # Calculate metrics for expansion model
+    acc_expansion_train, mae_expansion_train, rmse_expansion_train = calculate_overall_metrics(
+        result_expansion_train['Label'].tolist(),
+        result_expansion_train['Predicted'].tolist()
+    )
+    acc_expansion_test, mae_expansion_test, rmse_expansion_test = calculate_overall_metrics(
+        result_expansion_test['Label'].tolist(),
+        result_expansion_test['Predicted'].tolist()
+    )
+
+    # Calculate metrics for likelihood model
+    acc_likelihood_train, mae_likelihood_train, rmse_likelihood_train = calculate_overall_metrics(
+        result_likelihood_train['Label'].tolist(),
+        result_likelihood_train['Predicted'].tolist(),
+        binary_classification=False
+    )
+    acc_likelihood_test, mae_likelihood_test, rmse_likelihood_test = calculate_overall_metrics(
+        result_likelihood_test['Label'].tolist(),
+        result_likelihood_test['Predicted'].tolist(),
+        binary_classification=False
+    )
+
+    # Calculate metrics for multi-objective model (cross-validation)
+    (acc_mo_train_mean, mae_mo_train_mean, rmse_mo_train_mean, acc_mo_test_mean, mae_mo_test_mean, rmse_mo_test_mean,
+     acc_mo_train_sum, mae_mo_train_sum, rmse_mo_train_sum, acc_mo_test_sum, mae_mo_test_sum,
+     rmse_mo_test_sum) = calculate_metrics_MO_cross_validation(result_mo_dd)
+
+    # Calculate metrics for ensemble model (cross-validation)
+    (acc_ensemble_train_mean, mae_ensemble_train_mean, rmse_ensemble_train_mean, acc_ensemble_test_mean,
+     mae_ensemble_test_mean, rmse_ensemble_test_mean,
+     acc_ensemble_train_sum, mae_ensemble_train_sum, rmse_ensemble_train_sum, acc_ensemble_test_sum,
+     mae_ensemble_test_sum, rmse_ensemble_test_sum) = calculate_metrics_ensemble_cross_validation(result_ensemble)
+
+    # Create the table for the test set
+    table_data_test = [
+        ['Ensemble Mean', acc_ensemble_test_sum, mae_ensemble_test_mean, rmse_ensemble_test_mean],
+        ['Ensemble Voting', acc_ensemble_test_sum, mae_ensemble_test_sum, rmse_ensemble_test_sum],
+        ['Multi-objective Mean', acc_mo_test_sum, mae_mo_test_mean, rmse_mo_test_mean],
+        ['Multi-objective Voting', acc_mo_test_sum, mae_mo_test_sum, rmse_mo_test_sum],
+        ['Expansion', acc_expansion_test, mae_expansion_test, rmse_expansion_test],
+        ['Likelihood', acc_likelihood_test, mae_likelihood_test, rmse_likelihood_test]
+    ]
+
+    # Define the headers for the table
+    headers = ['Model', 'Accuracy', 'MAE', 'RMSE']
+
+    # Generate and print the table for the test set
+    table_test = tabulate(table_data_test, headers=headers, tablefmt='pretty')
+    print("Test Set Metrics:")
+    print(table_test)
+
+    # Create the table for the train set
+    table_data_train = [
+        ['Ensemble Mean', acc_ensemble_train_sum, mae_ensemble_train_mean, rmse_ensemble_train_mean],
+        ['Ensemble Voting', acc_ensemble_train_sum, mae_ensemble_train_sum, rmse_ensemble_train_sum],
+        ['Multi-objective Mean', acc_mo_train_sum, mae_mo_train_mean, rmse_mo_train_mean],
+        ['Multi-objective Voting', acc_mo_train_sum, mae_mo_train_sum, rmse_mo_train_sum],
         ['Expansion', acc_expansion_train, mae_expansion_train, rmse_expansion_train],
         ['Likelihood', acc_likelihood_train, mae_likelihood_train, rmse_likelihood_train]
     ]
