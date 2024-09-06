@@ -2,6 +2,9 @@ from sklearn.model_selection import KFold
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 import pandas as pd
 
+import warnings
+warnings.filterwarnings("ignore")
+
 
 def ensemble_design_cross_validation(dataset, n_trees):
     results_df = pd.DataFrame()

@@ -7,6 +7,9 @@ import numpy as np
 import itertools
 import csv
 
+import warnings
+warnings.filterwarnings("ignore")
+
 
 class DataCreator(Model):
 
@@ -150,7 +153,7 @@ class DataCreator(Model):
 
         parallel_results = parallel_pool(parallel_tasks)
 
-        file1 = open(f"Data/cavitation_type_dataset.csv", "w")
+        file1 = open(f"../Data/cavitation_type_dataset.csv", "w")
         writer1 = csv.writer(file1)
         writer1.writerow(['initial_radius', 'acoustic_pressure', 'frequency', 'temperature', 'density', 'viscosity',
                           'surface_tension', 'sound_velocity', 'vapor_pressure',

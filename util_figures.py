@@ -28,6 +28,9 @@ import seaborn as sns
 import pandas as pd
 import numpy as np
 
+import warnings
+warnings.filterwarnings("ignore")
+
 # Set Seaborn style
 sns.set(style="whitegrid")
 
@@ -342,7 +345,7 @@ def likelihood_figure(dataset, variable_to_vary, design):
         prediction = create_plot_expansion(dataset, experiment_maker, variable_to_vary, number_trees, generalization)
 
     else:
-        raise ValueError
+        raise ValueError('Invalid design')
     sns.set(style="whitegrid")
 
     plt.figure(figsize=(PLOT_WIDTH, PLOT_HEIGHT))
@@ -362,8 +365,7 @@ def likelihood_figure(dataset, variable_to_vary, design):
         labels = label_raw * 1e-6
         plt.xlabel('Frequency (M Hz)', fontsize=X_LABEL_FONT_SIZE)
     else:
-        raise ValueError
-
+        raise ValueError('Invalid variable to vary')
     sns.scatterplot(x=labels, y=prediction)
     plt.ylabel('Proportion prediction', fontsize=Y_LABEL_FONT_SIZE)
     plt.grid(True)
@@ -418,7 +420,7 @@ def heat_map_figure(dataset):
     Z = griddata((df['initial_radius'], df['acoustic_pressure']), df['count'], (X, Y))
 
     # Plotting the contour
-    plt.figure(figsize=(PLOT_WIDTH, PLOT_HEIGHT))
+    plt.figure(figsize=(PLOT_WIDTH*1.3, PLOT_HEIGHT*1.3))
     plt.gca().set_aspect(5)
 
     contour = plt.contourf(X, Y, Z, levels=np.arange(-0.5, 13, 1), cmap='RdYlBu')

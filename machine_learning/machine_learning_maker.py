@@ -7,9 +7,10 @@ import numpy as np
 import itertools
 import os
 
-
-import matplotlib.pyplot as plt
 from main import Model
+
+import warnings
+warnings.filterwarnings("ignore")
 
 
 class ExperimentMaker():
@@ -131,10 +132,8 @@ class ExperimentMaker():
 
             if predict_new and variable_to_vary is not None:
                 # Create a new test set based on the specified variable
-                if os.path.exists('../Data/proportion_plot_general.csv'):
-                    new_test_set = pd.read_csv('../Data/proportion_plot_general.csv')
-                else:
-                    new_test_set = self.create_new_test_set(variable_to_vary, two_variables)
+
+                new_test_set = self.create_new_test_set(variable_to_vary, two_variables)
                 features_test = new_test_set[['initial_radius', 'acoustic_pressure', 'frequency', 'temperature',
                                                   'density', 'viscosity', 'surface_tension', 'sound_velocity',
                                                   'vapor_pressure']]

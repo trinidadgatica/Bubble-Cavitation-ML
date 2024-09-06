@@ -7,6 +7,7 @@ from scipy.signal import find_peaks
 from scipy.optimize import root
 import numpy as np
 import warnings
+warnings.filterwarnings("ignore")
 
 
 class ExperimentMaker(Model):

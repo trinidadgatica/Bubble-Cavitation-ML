@@ -2,6 +2,9 @@ from sklearn.metrics import accuracy_score, mean_absolute_error, mean_squared_er
 from tabulate import tabulate
 import numpy as np
 
+import warnings
+warnings.filterwarnings("ignore")
+
 
 def calculate_metrics(labels, predictions, binary_classification=True):
     if binary_classification:

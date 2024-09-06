@@ -3,6 +3,9 @@ import numpy as np
 
 from main import Model
 
+import warnings
+warnings.filterwarnings("ignore")
+
 
 class Solver(Model):
     def runner_ode_rp(self, t, tstep):

@@ -4,6 +4,9 @@ import pandas as pd
 import numpy as np
 import ast
 
+import warnings
+warnings.filterwarnings("ignore")
+
 
 def critical_maximum_radius(data):
     eq_1 = 3 * 1.33 / (2 * data['surface_tension'])
